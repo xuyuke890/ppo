@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人网站</title>
+    <style>
+        /* 通用样式 */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: white;
+            color: white;
+        }
+
+        /* 页面样式 */
+        .page {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+        .page.active {
+            display: flex;
+        }
+        input, button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 第二页样式 */
+        .second-page {
+            background: url('images/background.jpg') no-repeat center center fixed;
+            background-size: contain;
+            position: relative;
+        }
+        svg {
+            width: 100%;
+            height: auto;
+            max-height: 80%;
+        }
+    </style>
+</head>
+<body>
+    <!-- 首页 -->
+    <div class="page first-page active">
+        <form id="questionForm">
+            <input type="text" name="skills" placeholder="技能 (输入字母、数字、符号)" required>
+            <input type="text" name="freeTime" placeholder="空闲时间 (输入字母、数字、符号)" required>
+            <input type="text" name="phoneNumber" placeholder="电话号码 (输入字母、数字、符号)" required>
+            <button type="submit">提交</button>
+        </form>
+    </div>
+
+    <!-- 第二页 -->
+    <div class="page second-page">
+        <svg 
+        width="100%" 
+        height="100%" 
+        viewBox="0 0 600 500" 
+        xmlns="http://www.w3.org/2000/svg" 
+        style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%)">
+        <!-- 定义三条较短的平行路径 -->
+        <path id="path1" d="M100,193 Q 300,193 500,193" fill="transparent" stroke="none" />
+        <path id="path2" d="M465,83 A550,350 0 0,1 525,417" fill="transparent" stroke="none" />
+        <path id="path3" d="M50,200 Q90,405 260,290" fill="transparent" stroke="none" />
+    
+        <!-- 动态显示图片 -->
+        <g id="skillImages"></g>
+        <g id="timeImages"></g>
+        <g id="phoneImages"></g>
+    </svg>    
+    </div>
+
+    <script>
+        // 获取页面元素
+        const firstPage = document.querySelector('.first-page');
+        const secondPage = document.querySelector('.second-page');
+        const form = document.getElementById('questionForm');
+
+        // 表单提交事件
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止默认提交行为
+
+            // 获取用户输入的数据
+            const formData = new FormData(form);
+            const skills = formData.get('skills');
+            const freeTime = formData.get('freeTime');
+            const phoneNumber = formData.get('phoneNumber');
+
+            // 渲染图片到对应路径上
+            renderImages('skillImages', skills, 'path1', 45, 85, 85);
+            renderImages('timeImages', freeTime, 'path2', 27, 27, 27);
+            renderImages('phoneImages', phoneNumber, 'path3', 25, 26, 26);
+
+            // 切换到第二页
+            firstPage.classList.remove('active');
+            secondPage.classList.add('active');
+        });
+
+        /**
+         * 根据输入内容渲染图片（字母、数字、符号）
+         * @param {string} groupId SVG 分组 ID
+         * @param {string} text 输入的文字
+         * @param {string} pathId 路径 ID
+         * @param {number} spacing 每个图片之间的间隔（像素）
+         * @param {number} imgWidth 图片宽度（可选）
+         * @param {number} imgHeight 图片高度（可选）
+         */
+        function renderImages(groupId, text, pathId, spacing, imgWidth = 16, imgHeight = 16) {
+            const group = document.getElementById(groupId);
+            const path = document.getElementById(pathId);
+            const pathLength = path.getTotalLength();
+
+            group.innerHTML = ''; // 清空之前的内容
+
+            // 限制图片数量
+            const maxItems = Math.floor(pathLength / spacing);
+            const items = text.slice(0, maxItems);
+
+            // 遍历每个字符
+            for (let i = 0; i < items.length; i++) {
+                const char = items[i];
+                const offset = spacing * (i + 1);
+                const position = path.getPointAtLength(offset);
+
+                // 创建 <image> 元素
+                const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+                if (/[A-Za-z]/.test(char)) {
+                    image.setAttribute('href', `letters/${char.toUpperCase()}.png`);
+                } else if (/[0-9]/.test(char)) {
+                    image.setAttribute('href', `numbers/${char}.png`);
+                } else {
+                    image.setAttribute('href', `symbols/${encodeURIComponent(char)}.png`);
+                }
+
+                image.setAttribute('width', imgWidth);
+                image.setAttribute('height', imgHeight);
+                image.setAttribute('x', position.x - imgWidth / 2);
+                image.setAttribute('y', position.y - imgHeight / 2);
+
+                group.appendChild(image);
+            }
+        }
+    </script>
+</body>
+</html>
